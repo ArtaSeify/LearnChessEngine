@@ -18,11 +18,14 @@
 
 // Code for calculating NNUE evaluation function
 
+#pragma warning(disable:4996)
+
 #include <iostream>
 #include <set>
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <stdio.h>
 
 #include "../evaluate.h"
 #include "../position.h"
@@ -109,7 +112,7 @@ namespace Stockfish::Eval::NNUE {
   {
     write_little_endian<std::uint32_t>(stream, Version);
     write_little_endian<std::uint32_t>(stream, hashValue);
-    write_little_endian<std::uint32_t>(stream, desc.size());
+    write_little_endian<std::uint32_t>(stream, static_cast<uint32_t>(desc.size()));
     stream.write(&desc[0], desc.size());
     return !stream.fail();
   }
@@ -161,7 +164,7 @@ namespace Stockfish::Eval::NNUE {
     ASSERT_ALIGNED(buffer, alignment);
 
     const std::size_t bucket = (pos.count<ALL_PIECES>() - 1) / 4;
-    const auto psqt = featureTransformer->transform(pos, transformedFeatures, bucket);
+    const auto psqt = featureTransformer->transform(pos, transformedFeatures, static_cast<int>(bucket));
     const auto output = network[bucket]->propagate(transformedFeatures, buffer);
 
     int materialist = psqt;
@@ -212,7 +215,7 @@ namespace Stockfish::Eval::NNUE {
     NnueEvalTrace t{};
     t.correctBucket = (pos.count<ALL_PIECES>() - 1) / 4;
     for (std::size_t bucket = 0; bucket < LayerStacks; ++bucket) {
-      const auto psqt = featureTransformer->transform(pos, transformedFeatures, bucket);
+      const auto psqt = featureTransformer->transform(pos, transformedFeatures, static_cast<int>(bucket));
       const auto output = network[bucket]->propagate(transformedFeatures, buffer);
 
       int materialist = psqt;
